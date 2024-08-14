@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PostViewSet
+from .views import PostViewSet, CategoryViewSet
 from rest_framework.authtoken import views as auth_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -10,6 +10,8 @@ from rest_framework_simplejwt.views import (
 router = DefaultRouter()
 
 router.register('posts', PostViewSet)
+
+router.register('categories', CategoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
