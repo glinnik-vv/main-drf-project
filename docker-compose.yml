@@ -11,6 +11,8 @@ services:
     # Открытие порта на хостовой машине и перенаправление на порт в контейнере
     ports:
       - 8000:8000
+    networks:
+      - mynetwork
     depends_on:
       - db
   db:
@@ -26,15 +28,25 @@ services:
     # Связывание тома с директорией в контейнере для сохранения данных postgres
     volumes:
       - pgdata:/var/lib/postgresql/data/
+    networks:
+      - mynetwork
+
   nuxt:
     build:
       context: ../main-vue-nuxt/nuxt-vue-site
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    networks:
+      - mynetwork
     depends_on:
       - django
     environment:
       - API_URL=http://django:8000
+
+networks:
+  mynetwork:
+    driver: bridge
+
 volumes:
   pgdata:
