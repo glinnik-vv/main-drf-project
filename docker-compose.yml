@@ -5,7 +5,7 @@ services:
     # Задание имени контейнера для сервиса django
     container_name: django
     # Задание команды, которую нужно запустить при запуске контейнера для сервиса django
-    command: python mysite/manage.py runserver 0.0.0.0:8000
+    command: sh -c "python mysite/manage.py migrate && python mysite/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/usr/src/app
     # Открытие порта на хостовой машине и перенаправление на порт в контейнере
