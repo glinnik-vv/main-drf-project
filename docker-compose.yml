@@ -33,7 +33,7 @@ services:
 
   nuxt:
     build:
-      context: ../main-vue-nuxt/nuxt-vue-site
+      context: ../nuxt-vue-site
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
