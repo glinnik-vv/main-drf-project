@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-_l9t)cn47wlgwsm7ng(xm8*l2muin(5tx@qrsc8*j@m6h3(u#=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '10.10.40.36']
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,15 +52,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# CROS_ALLOWED_ORIGINS = [
-#     'http://localhost:3000',
-#     'http://*:3000',
-# ]
+CROS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://10.10.40.36:3000',
+    'http://*:3000',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -76,16 +78,25 @@ REST_FRAMEWORK = {
     ],
 }
 
-CROS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
+CORS_ALLOW_HEADERS = [
     'authorization',
     'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_EXPOSE_HEADERS = [
+    'Content-Type',
+    'X-CSRFToken',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
