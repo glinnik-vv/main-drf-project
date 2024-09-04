@@ -28,6 +28,8 @@ services:
     # Связывание тома с директорией в контейнере для сохранения данных postgres
     volumes:
       - pgdata:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
     networks:
       - mynetwork
 

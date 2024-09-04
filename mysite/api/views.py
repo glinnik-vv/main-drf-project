@@ -1,7 +1,10 @@
+import datetime
+import os
 from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
 from rest_framework import viewsets
-from .serializers import PostSerializer, CategorySerializer
-from .models import Post, Category
+from .serializers import PostSerializer, CategorySerializer, UploadFileSerializer
+from .models import Post, Category, UploadFile
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -20,3 +23,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsOwnerOrReadOnly]
+
+
+class UploadFileViewSet(viewsets.ModelViewSet):
+    queryset = UploadFile.objects.all()
+    serializer_class = UploadFileSerializer
+
+def perform_create(self, serializer):
+    file = serializer.validated_data['file']
+    service_name = serializer.validated_data['service_name']
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    folder_path = f'{current_date}/{service_name}'
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    file_path = f'{folder_path}/{file.name}'
+    with open(file_path, 'wb') as f:
+        f.write(file.read())
+    upload_file = UploadFile(file=file_path, service_name=service_name)
+    upload_file.save()
+    serializer.save(upload_file=upload_file)
