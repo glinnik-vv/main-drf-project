@@ -35,7 +35,7 @@ class Post(models.Model):
 
 
 class UploadFile(models.Model):
-    file = models.FileField(upload_to='uploads/')
+    file = models.FileField()
     service_name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

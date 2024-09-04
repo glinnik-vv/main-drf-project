@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import os
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
@@ -29,16 +29,16 @@ class UploadFileViewSet(viewsets.ModelViewSet):
     queryset = UploadFile.objects.all()
     serializer_class = UploadFileSerializer
 
-def perform_create(self, serializer):
-    file = serializer.validated_data['file']
-    service_name = serializer.validated_data['service_name']
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    folder_path = f'{current_date}/{service_name}'
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    file_path = f'{folder_path}/{file.name}'
-    with open(file_path, 'wb') as f:
-        f.write(file.read())
-    upload_file = UploadFile(file=file_path, service_name=service_name)
-    upload_file.save()
-    serializer.save(upload_file=upload_file)
+    def perform_create(self, serializer):
+        file = serializer.validated_data['file']
+        service_name = serializer.validated_data['service_name']
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        folder_path = f'uploads/{current_date}/{service_name}'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        file_path = f'{folder_path}/{file.name}'
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        with open(file_path, 'wb') as f:
+            f.write(file.read())
+        serializer.save(file=file_path, service_name=service_name)
