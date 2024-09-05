@@ -12,6 +12,6 @@ cd путь/до/main-drf-project-main
 
 docker-compose up
 
-localhost:3000 - фронт
-localhost:8000 - бэк
-localhost:5432 - база
+- localhost:3000 - фронт
+- localhost:8000 - бэк
+- localhost:5432 - база
