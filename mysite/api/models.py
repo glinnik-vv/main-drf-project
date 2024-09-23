@@ -13,8 +13,26 @@ class UserSettings(models.Model):
         return self.user
 
 
+class AppSettings(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    unigate_db_name = models.CharField(max_length=255)
+    unigate_db_host = models.CharField(max_length=255)
+    unigate_db_user = models.CharField(max_length=255)
+    unigate_db_password = models.CharField(max_length=255)
+    unigate_db_port = models.CharField(max_length=255)
+    promed_login = models.CharField(max_length=255)
+    promed_password = models.CharField(max_length=255)
+    promed_url = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user
+
+
 class Lpu(models.Model):
-    code = models.CharField(max_length=255)
+    code = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     unigate_login = models.CharField(max_length=255)
     unigate_password = models.CharField(max_length=255)

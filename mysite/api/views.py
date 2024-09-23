@@ -1,29 +1,48 @@
 from datetime import datetime
 import os
+from sshtunnel import SSHTunnelForwarder
 from django.forms import ValidationError
+from django.http import JsonResponse
+from django.views import View
 import pandas as pd
-from django.shortcuts import render
 from rest_framework import viewsets
-from .serializers import PostSerializer, CategorySerializer, UploadFileSerializer, PatientSerializer, DirectionSerializer, OrderInfoSerializer, ResultsSerializer, MeasurementSerializer, LpuSerializer
-from .models import Post, Category, UploadFile, Patient, Direction, OrderInfo, Results, Measurement, Lpu
+from sqlalchemy import URL, create_engine
+from .serializers import UserSettingsSerializer, AppSettingsSerializer, PostSerializer, CategorySerializer, UploadFileSerializer, PatientSerializer, DirectionSerializer, OrderInfoSerializer, ResultsSerializer, MeasurementSerializer, LpuSerializer
+from .models import UserSettings, AppSettings, Post, Category, UploadFile, Patient, Direction, OrderInfo, Results, Measurement, Lpu
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.pagination import LimitOffsetPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import PatientFilter
-
+  
 
 def import_patients_from_excel(file_path):
     # Читаем данные из файла Excel
     data = pd.read_excel(file_path)
 
-    # Проходим по строкам и создаем объекты Patient
+    # Создаем список объектов Patient
+    patients = []
     for _, row in data.iterrows():
-        Patient.objects.create(
+        patients.append(Patient(
             first_name=row['first_name'],
             last_name=row['last_name'],
-            age=row['age'],
-            # добавьте другие поля по необходимости
-        )
+            surname=row['surname'],
+            id_pac=row['id_pac'],
+            birth_date=row['birth_date'],
+            sex=row['sex'],
+            snils=row['snils'],
+        ))
+    # Обновляем существующие объекты Patient
+    Patient.objects.bulk_create(patients, update_conflicts=True, update_fields=['first_name', 'last_name', 'surname', 'birth_date', 'sex', 'snils'])
+
+
+class UserSettingsViewSet(viewsets.ModelViewSet):
+    queryset = UserSettings.objects.all()
+    serializer_class = UserSettingsSerializer
+
+
+class AppSettingsViewSet(viewsets.ModelViewSet):
+    queryset = AppSettings.objects.all()
+    serializer_class = AppSettingsSerializer
 
 
 class PatientViewSet(viewsets.ModelViewSet):
@@ -111,3 +130,64 @@ class MeasurementViewSet(viewsets.ModelViewSet):
 class LpuViewSet(viewsets.ModelViewSet):
     queryset = Lpu.objects.all()
     serializer_class = LpuSerializer
+
+
+class ImportLpuDataView(View):
+    def get(self, request):
+        setting_name = 'ЦКДЛ'
+        app_setting = AppSettings.objects.get(name=setting_name)
+        
+        db_params = {
+            'database': app_setting.unigate_db_name,
+            'user': app_setting.unigate_db_user,
+            'password': app_setting.unigate_db_password,
+            'host': app_setting.unigate_db_host,
+            'port': app_setting.unigate_db_port
+        }
+
+        if setting_name != 'СО':
+            # настройки SSH-сервера
+            ssh_host = '10.10.40.4'
+            ssh_port = 22
+            ssh_username = 'eamk'
+            ssh_password = 'QAZ12qaz'
+            # создаем туннель
+            tunnel = SSHTunnelForwarder(
+                (ssh_host, ssh_port),
+                ssh_username=ssh_username,
+                ssh_password=ssh_password,
+                remote_bind_address=(db_params['host'], int(db_params['port']))
+            )
+            # запускаем туннель
+            tunnel.start()
+            db_params['port'] = tunnel.local_bind_port
+        
+        url_obj = URL.create(
+            'postgresql+psycopg2',
+            username=db_params['user'],
+            password=db_params['password'],
+            host=db_params['host'],
+            port=int(db_params['port']),
+            database=db_params['database']
+        )
+
+        engine = create_engine(url_obj) 
+        connection = engine.connect()
+
+        df = pd.read_sql('SELECT "LpuId" code, "UserName" name, "UserPassword" unigate_login, "UnigateName" unigate_password FROM "CheckInfos"', connection)
+        tunnel.close()
+        lpus = []
+        for index, row in df.iterrows():
+            lpus.append(Lpu(
+                code=row['code'],
+                name=row['name'],
+                unigate_login=row['unigate_login'],
+                unigate_password=row['unigate_password']
+            ))
+        Lpu.objects.bulk_create(lpus, update_conflicts=True, update_fields=['name', 
+                                                                            'unigate_login', 
+                                                                            'unigate_password'], 
+                                                                            unique_fields=['code'])
+
+        return JsonResponse({'status': 'success', 
+                             'message': 'LPU data imported successfully'})

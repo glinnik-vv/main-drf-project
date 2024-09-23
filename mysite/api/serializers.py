@@ -1,5 +1,17 @@
-from .models import Post, Category, UploadFile, Patient, Direction, OrderInfo, Results, Measurement, Lpu
+from .models import UserSettings, AppSettings, Post, Category, UploadFile, Patient, Direction, OrderInfo, Results, Measurement, Lpu
 from rest_framework import serializers
+
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSettings
+        fields = '__all__'
+
+
+class AppSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppSettings
+        fields = '__all__'
 
 
 class PatientSerializer(serializers.ModelSerializer):
