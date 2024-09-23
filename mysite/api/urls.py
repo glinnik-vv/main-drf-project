@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PostViewSet, CategoryViewSet, UploadFileViewSet
+from .views import PostViewSet, CategoryViewSet, UploadFileViewSet, PatientViewSet, DirectionViewSet, OrderInfoViewSet, ResultsViewSet, MeasurementViewSet, LpuViewSet
 from rest_framework.authtoken import views as auth_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -10,8 +10,14 @@ from rest_framework_simplejwt.views import (
 router = DefaultRouter()
 
 router.register('posts', PostViewSet)
-
 router.register('categories', CategoryViewSet)
+router.register('patients', PatientViewSet)
+router.register('directions', DirectionViewSet)
+router.register('orderinfo', OrderInfoViewSet)
+router.register('results', ResultsViewSet)
+router.register('measurements', MeasurementViewSet)
+router.register('lpu', LpuViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),
